@@ -1,0 +1,19 @@
+#!/bin/bash -x
+
+SSH_KEY="$HOME/.ssh/id_rsa.pub"
+
+virt-builder ubuntu-18.04 -o kata.qcow2 --format qcow2 --size=50G \
+	--root-password password:kata \
+	--run-command 'useradd -m -s /bin/bash kata' \
+	--password  'kata:password:kata' \
+	--run-command 'echo "kata ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/kata' \
+	--run-command 'usermod -a -G sudo kata' \
+	--update \
+	--install "git,rsync,curl" \
+	--ssh-inject "kata:file:$SSH_KEY" \
+	--append-line '/home/kata/.bashrc:export PATH=$PATH:/usr/local/go/bin' \
+	--append-line '/home/kata/.bashrc:export DEBUG=true'
+
+sudo virt-install --import --name kata  --ram 8192 --vcpus 4 \
+          --disk path=kata.qcow2,format=qcow2 --graphics vnc,listen=0.0.0.0 \
+          --os-type=linux --network network=default

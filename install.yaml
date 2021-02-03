@@ -1,0 +1,49 @@
+- name: Create kata repo
+  hosts: all
+  remote_user: kata
+  tasks:
+  - name: Create rsync config
+    become: true
+    copy:
+      dest: /etc/rsyncd.conf
+      content: |
+        lock file = /var/run/rsync.lock
+        log file = /var/log/rsyncd.log
+        pid file = /var/run/rsyncd.pid
+        [kata]
+              path = /home/kata/go/src/github.com/kata-containers
+              comment = kata repo
+              read only = no
+              uid = kata
+              gid = kata
+  - name: Create kata directory
+    file:
+      path: /home/kata/go/src/github.com/kata-containers/kata-containers
+      state: directory
+  - name: Create kata tests directory
+    file:
+      path: /home/kata/go/src/github.com/kata-containers/tests
+      state: directory
+  - name: Start rsyncd service
+    become: true
+    systemd:
+      name: rsync
+      state: started
+      enabled: True
+  - name: Kata repo in VM
+    synchronize:
+      src: "{{ lookup('env','HOME') }}/go/src/github.com/kata-containers/kata-containers"  
+      dest: rsync://kata@{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}/kata
+      recursive: yes
+  - name: Kata tests repo in VM
+    synchronize:
+      src: "{{ lookup('env','HOME') }}/go/src/github.com/kata-containers/tests"  
+      dest: rsync://kata@{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}/kata
+      recursive: yes
+  - name: Prepare environment
+    environment:
+      WORKSPACE: "/home/kata"
+      CI_JOB: "CRIO_K8S"
+    command:
+      cmd: ./jenkins_job_build.sh github.com/kata-containers/kata-containers
+      chdir: /home/kata/go/src/github.com/kata-containers/tests/.ci
