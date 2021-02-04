@@ -5,8 +5,13 @@ Create a VM with:
 ```bash
 $ ./virt-build-kata
 ```
-Modify the IP of you VM in `hosts.yaml`
-This setup syncronize your local kata-containers and tests repo inside the VM.
+Create a hosts.yaml file with the IP of your VM like this:
+```yaml
+all:
+  hosts:
+    192.168.122.99
+```
+This setup syncronize your local kata-containers and tests repo inside the VM. Currently, this setup expect to find the kata repos under `$HOME/go/src/github.com/kata-containers`. 
 
 Prepare and run the Kata CI tests:
 ```bash
