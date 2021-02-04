@@ -1,5 +1,5 @@
 # Create local Kata CI environment
-This setup is based on the Jenkins scripts for the Kata CI. It reproduces locally the same environment used in the Kata CI. More detailsabout the environment in the [Jenkins setup docs](https://github.com/kata-containers/ci/blob/master/Jenkins_setup.md#job-build-script).
+This setup is based on the Jenkins scripts for the Kata CI, and it locally reproduces the same environment used in the CI. More details about the environment in the [Jenkins setup docs](https://github.com/kata-containers/ci/blob/master/Jenkins_setup.md#job-build-script).
 
 Create a VM with:
 ```bash
