@@ -30,20 +30,52 @@
       name: rsync
       state: started
       enabled: True
-  - name: Kata repo in VM
+  - name: Synchronize kata-containers repo 
     synchronize:
       src: "{{ lookup('env','HOME') }}/go/src/github.com/kata-containers/kata-containers"  
       dest: rsync://kata@{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}/kata
       recursive: yes
-  - name: Kata tests repo in VM
+  - name: Synchronize tests repo
     synchronize:
       src: "{{ lookup('env','HOME') }}/go/src/github.com/kata-containers/tests"  
       dest: rsync://kata@{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}/kata
       recursive: yes
-  - name: Prepare environment
+  - name: Disable swap to run k8s tests
+    command: swapoff -a
+    become: true
+  - name: Clean-up Agent dir
+    command:
+      cmd: make clean
+      chdir: /home/kata/go/src/github.com/kata-containers/kata-containers/tools/osbuilder
+  - name: Clean cni dir
+    file:
+      path: /etc/cni/net.d
+      state: absent
+    become: true
+  - name: Clean kube directory
+    file:
+      path: /home/kata/.kube
+      state: absent
+    become: true
+  - name: Run Kata CI job
     environment:
       WORKSPACE: "/home/kata"
       CI_JOB: "CRIO_K8S"
     command:
-      cmd: ./jenkins_job_build.sh github.com/kata-containers/kata-containers
+      cmd: ./jenkins_job_build.sh github.com/kata-containers/kata-containers &> /home/kata/kata_ci_job.log
       chdir: /home/kata/go/src/github.com/kata-containers/tests/.ci
+    async: 1000
+    poll: 0
+    register: ci_register
+  - name: Check CI job every 120 sec
+    async_status:
+      jid: "{{ ci_register.ansible_job_id }}"
+    register: job_result
+    until: job_result.finished
+    delay: 120
+    retries: 30
+    ignore_errors: yes
+  - name: Copy log file locally
+    fetch:
+      src: /home/kata/kata_ci_job.log
+      dest: kata-ci-job.log
