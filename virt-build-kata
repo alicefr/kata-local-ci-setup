@@ -1,34 +1,55 @@
-#!/bin/bash -x
+#!/bin/bash 
+
+function help {
+	echo "Specify which distro you want to use: virt-build-kata <distro>. Supported distro:"
+	echo "	- fedora"
+	echo "	- ubuntu"
+	echo "  - centos"
+}
 
 distro_commands=""
 case "$1" in
 	ubuntu)
 		distro=ubuntu-18.04
-		distro_commands="--run-command 'usermod -a -G sudo kata'"
+		distro_commands="--run-command 'usermod -a -G sudo kata' --update"
+		osvariant=ubuntu18.04
 		;;
 	centos)
 		distro=centos-8.2
+		osvariant=centos8
+		distro_commands="--selinux-relabel"
+		;;
+	fedora)
+		distro=fedora-32
+		osvariant=fedora32
+		distro_commands="--selinux-relabel"
 		;;
 	*)
-	echo "Distro $1 not recognized"
-        exit 1
+		help
+		echo "Distro $1 not recognized"
+        	exit 1
 esac
 
-SSH_KEY="$HOME/.ssh/id_rsa.pub"
-
-set -e
+SSH_KEY_FILE="$HOME/.ssh/id_rsa.pub"
+SSH_KEY=$(cat $SSH_KEY_FILE)
+set -ex
 
 virt-builder $distro -o kata.qcow2 --format qcow2 --size=50G \
 	--root-password password:kata \
-	--run-command 'adduser -m -s /bin/bash kata' \
+	$distro_commands \
+	--mkdir /home/kata \
+	--delete /.autorelabel \
+	--ssh-inject "root:file:$SSH_KEY_FILE" \
+	--install "git,rsync,curl,make" \
+	--firstboot-command 'useradd -m  kata -s /bin/bash' \
+	--firstboot-command 'echo "kata ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/kata' \
+	--firstboot-command "echo 'export PATH=$PATH:/usr/local/go/bin' >> /home/kata/.bashrc" \
+	--firstboot-command 'mkdir -p /home/kata/.ssh' \
+	--firstboot-command "echo $SSH_KEY > /home/kata/.ssh/authorized_keys"  \
+	--firstboot-command 'chown kata:kata -R /home/kata' \
 	--password  'kata:password:kata' \
-	--run-command 'echo "kata ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/kata' \
-	--update \
-	--install "git,rsync,curl" \
-	--ssh-inject "kata:file:$SSH_KEY" \
-	--append-line '/home/kata/.bashrc:export PATH=$PATH:/usr/local/go/bin' \
-	--append-line '/home/kata/.bashrc:export DEBUG=true' $distro_command
+	--hostname kata-$distro
 
 sudo virt-install --import --name kata  --ram 8192 --vcpus 4 \
-          --disk path=kata.qcow2,format=qcow2 --graphics vnc,listen=0.0.0.0 \
-          --os-type=linux --network network=default
+        --disk path=kata.qcow2,format=qcow2 --graphics vnc,listen=0.0.0.0 \
+        --os-type=$osvariant --network network=default
