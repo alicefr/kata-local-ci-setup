@@ -57,13 +57,22 @@
       path: /home/kata/.kube
       state: absent
     become: true
+  - name: Remove log file
+    file:
+      path: /home/kata/kata_ci_job.log
+      state: absent
+  - name: Kill eventual remaining jenkins_job.sh
+    command: killall jenkins_job_build.sh
+    ignore_errors: yes
   - name: Run Kata CI job
     environment:
       WORKSPACE: "/home/kata"
       CI_JOB: "CRIO_K8S"
-    command:
-      cmd: ./jenkins_job_build.sh github.com/kata-containers/kata-containers &> /home/kata/kata_ci_job.log
+    shell: ./jenkins_job_build.sh github.com/kata-containers/kata-containers > /home/kata/kata_ci_job.log
+    args:
       chdir: /home/kata/go/src/github.com/kata-containers/tests/.ci
+      creates: /home/kata/kata_ci_job.log
+      executable: /bin/bash
     async: 1000
     poll: 0
     register: ci_register
