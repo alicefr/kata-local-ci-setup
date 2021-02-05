@@ -20,11 +20,10 @@ do
 done
 
 distro_commands=""
-rh_distro_commands=(--selinux-relabel
+rh_distro_commands=( --selinux-relabel
 		--edit '/etc/selinux/config:s/SELINUX=enforcing/SELINUX=permissive/'
 		--firstboot-command 'systemctl stop firewalld'
-		--firstboot-command 'systemctl disable firewalld'
-		)
+		--firstboot-command 'systemctl disable firewalld')
 case "$d" in
 	ubuntu)
 		distro=ubuntu-18.04
@@ -38,12 +37,12 @@ case "$d" in
 	centos)
 		distro=centos-8.2
 		osvariant=centos8
-		distro_commands=$rh_distro_commands
+		distro_commands=("${rh_distro_commands[@]}")
 		;;
 	fedora)
 		distro=fedora-32
 		osvariant=fedora32
-		distro_commands=$rh_distro_commands
+		distro_commands=("${rh_distro_commands[@]}")
 		;;
 	*)
 		help
