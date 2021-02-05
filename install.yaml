@@ -26,10 +26,7 @@
       state: directory
   - name: Start rsyncd service
     become: true
-    systemd:
-      name: rsync
-      state: started
-      enabled: True
+    command: rsync --daemon
   - name: Synchronize kata-containers repo 
     synchronize:
       src: "{{ lookup('env','HOME') }}/go/src/github.com/kata-containers/kata-containers"  
