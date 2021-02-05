@@ -1,17 +1,29 @@
 #!/bin/bash 
 
 function help {
-	echo "Specify which distro you want to use: virt-build-kata <distro>. Supported distro:"
-	echo "	- fedora"
-	echo "	- ubuntu"
-	echo "  - centos"
+	echo "Create local CI environment for kata container: virt-build-kata "
+	echo "	-h: print help"
+	echo "	-d <distro>: (ubuntu,centos,fedora)"
+	echo "	-k <ssh_key_file>"
 }
 
+
+while getopts hk:d: flag
+do
+    case "${flag}" in
+        d) d=${OPTARG};;
+        k) key=${OPTARG};;
+        h) help
+	   exit 0
+	 ;;
+    esac
+done
+
 distro_commands=""
-case "$1" in
+case "$d" in
 	ubuntu)
 		distro=ubuntu-18.04
-		distro_commands="--run-command 'usermod -a -G sudo kata' --update"
+		distro_commands=`--run-command 'usermod -a -G sudo kata' --update --firstboot-command 'dhclient'`
 		osvariant=ubuntu18.04
 		;;
 	centos)
@@ -30,7 +42,7 @@ case "$1" in
         	exit 1
 esac
 
-SSH_KEY_FILE="$HOME/.ssh/id_rsa.pub"
+SSH_KEY_FILE=$key
 SSH_KEY=$(cat $SSH_KEY_FILE)
 set -ex
 
