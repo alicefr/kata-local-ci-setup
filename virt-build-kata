@@ -23,18 +23,23 @@ distro_commands=""
 case "$d" in
 	ubuntu)
 		distro=ubuntu-18.04
-		distro_commands=`--run-command 'usermod -a -G sudo kata' --update --firstboot-command 'dhclient'`
+		distro_commands=( --firstboot-command 'usermod -a -G sudo kata'
+		--update 
+		--firstboot-command 'dhclient' 
+		--firstboot-command 'systemctl enable serial-getty@ttyS0' 
+		--firstboot-command 'systemctl start serial-getty@ttyS0')
+		echo "${distro_commands[@]}"
 		osvariant=ubuntu18.04
 		;;
 	centos)
 		distro=centos-8.2
 		osvariant=centos8
-		distro_commands="--selinux-relabel"
+		distro_commands=(--selinux-relabel)
 		;;
 	fedora)
 		distro=fedora-32
 		osvariant=fedora32
-		distro_commands="--selinux-relabel"
+		distro_commands=(--selinux-relabel)
 		;;
 	*)
 		help
@@ -48,14 +53,14 @@ set -ex
 
 virt-builder $distro -o kata.qcow2 --format qcow2 --size=50G \
 	--root-password password:kata \
-	$distro_commands \
+	"${distro_commands[@]}" \
 	--mkdir /home/kata \
 	--delete /.autorelabel \
 	--ssh-inject "root:file:$SSH_KEY_FILE" \
 	--install "git,rsync,curl,make" \
 	--firstboot-command 'useradd -m  kata -s /bin/bash' \
 	--firstboot-command 'echo "kata ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/kata' \
-	--firstboot-command "echo 'export PATH=$PATH:/usr/local/go/bin' >> /home/kata/.bashrc" \
+	--firstboot-command "echo 'export PATH=\$PATH:/usr/local/go/bin' >> /home/kata/.bashrc" \
 	--firstboot-command 'mkdir -p /home/kata/.ssh' \
 	--firstboot-command "echo $SSH_KEY > /home/kata/.ssh/authorized_keys"  \
 	--firstboot-command 'chown kata:kata -R /home/kata' \
