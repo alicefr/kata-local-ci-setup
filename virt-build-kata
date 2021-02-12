@@ -78,7 +78,7 @@ virt-builder $distro -o $disk --format qcow2 --size=$size \
 	--mkdir /home/kata \
 	--delete /.autorelabel \
 	--ssh-inject "root:file:$SSH_KEY_FILE" \
-	--install "git,rsync,curl,make" \
+	--install "git,rsync,curl,make,tar" \
 	--firstboot-command 'useradd -m  kata -s /bin/bash' \
 	--firstboot-command 'echo "kata ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/kata' \
 	--firstboot-command "echo 'export PATH=\$PATH:/usr/local/go/bin' >> /home/kata/.bashrc" \
