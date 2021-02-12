@@ -18,3 +18,7 @@ Prepare and run the Kata CI tests:
 $ ansible-playbook  -i hosts.yaml install.yaml 
 ```
 
+If you want to check the log of the script:
+```bash
+$ ssh kata@192.168.122.99 tail -f /home/kata/kata_ci_job.log
+```
