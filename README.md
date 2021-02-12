@@ -15,7 +15,7 @@ This setup syncronize your local kata-containers and tests repo inside the VM. C
 
 Prepare and run the Kata CI tests:
 ```bash
-$ ansible-playbook  -i hosts.yaml install.yaml 
+$ ansible-playbook  -i hosts.yaml run-local-kata-ci.yaml
 ```
 When the the ansible-playbook finished (with errors or not),and it will copy the output in the directory `kata-ci-job.log`.
 
