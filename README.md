@@ -11,7 +11,7 @@ all:
   hosts:
     192.168.122.99
 ```
-This setup syncronize your local kata-containers and tests repo inside the VM. Currently, this setup expect to find the kata repos under `$HOME/go/src/github.com/kata-containers`. 
+This setup syncronize your local kata-containers and tests repo inside the VM. As default, this setup looks for the kata repo in `$HOME/go/src/github.com/kata-containers`. If you have the code under under path, you have to change the variable `kata_containers_repo_path` in `env_var.yaml`.
 
 Prepare and run the Kata CI tests:
 ```bash
@@ -23,3 +23,4 @@ If you want to check the log of the script while it is running:
 ```bash
 $ ssh kata@192.168.122.99 tail -f /home/kata/kata_ci_job.log
 ```
+You can customize the this setup by modifying the file `env_var.yaml`.
