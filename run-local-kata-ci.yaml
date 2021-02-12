@@ -67,10 +67,10 @@
     environment:
       WORKSPACE: "/home/kata"
       CI_JOB: "{{ ci_job }}"
-    shell: ./jenkins_job_build.sh github.com/kata-containers/kata-containers > {{ guest_kata_log_file }}
+    shell: ./jenkins_job_build.sh github.com/kata-containers/kata-containers > '{{ guest_kata_log_file }}'
     args:
       chdir: /home/kata/go/src/github.com/kata-containers/tests/.ci
-      creates: /home/kata/kata_ci_job.log
+      creates: '{{ guest_kata_log_file }}'
       executable: /bin/bash
     async: 1000
     poll: 0
