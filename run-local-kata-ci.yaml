@@ -65,9 +65,10 @@
     ignore_errors: yes
   - name: Run Kata CI job
     environment:
+      BAREMETAL: true
       WORKSPACE: "/home/kata"
       CI_JOB: "{{ ci_job }}"
-    shell: ./jenkins_job_build.sh github.com/kata-containers/kata-containers > '{{ guest_kata_log_file }}'
+    shell: ./jenkins_job_build.sh github.com/kata-containers/kata-containers &> '{{ guest_kata_log_file }}'
     args:
       chdir: /home/kata/go/src/github.com/kata-containers/tests/.ci
       creates: '{{ guest_kata_log_file }}'
