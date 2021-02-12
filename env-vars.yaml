@@ -1,0 +1,13 @@
+# guest_kata_log_file defines the path to the output log file in the guest
+guest_kata_log_file: /home/kata/kata_ci_job.log
+# host_kata_log_dir defines the path to the output log file on the host
+host_kata_log_dir: kata-ci-job.log
+# kata_containers_repo_path defines  where the kata repos are located
+kata_containers_repo_path: "{{ lookup('env','HOME') }}/go/src/github.com/kata-containers"
+# ci_job defines the CI flavor: https://github.com/kata-containers/tests/blob/main/.ci/jenkins_job_build.sh#L222-L309
+ci_job: CRIO_K8S
+# poll_time and num_tries let you define for how long you want to let the CI job run
+# poll_time defines after how many second it checks the ci job
+poll_time: 120
+# num_tries defines how many time you want to check the ci job
+num_tries: 60

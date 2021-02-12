@@ -1,5 +1,7 @@
 - name: Create kata repo
   hosts: all
+  vars_files:
+    - env-vars.yaml
   remote_user: kata
   tasks:
   - name: Create rsync config
@@ -27,14 +29,14 @@
   - name: Start rsyncd service
     become: true
     command: rsync --daemon
-  - name: Synchronize kata-containers repo 
+  - name: Synchronize kata-containers repo
     synchronize:
-      src: "{{ lookup('env','HOME') }}/go/src/github.com/kata-containers/kata-containers"  
+      src: '{{ kata_containers_repo_path  }}/kata-containers'
       dest: rsync://kata@{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}/kata
       recursive: yes
   - name: Synchronize tests repo
     synchronize:
-      src: "{{ lookup('env','HOME') }}/go/src/github.com/kata-containers/tests"  
+      src: '{{ kata_containers_repo_path  }}/tests'
       dest: rsync://kata@{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}/kata
       recursive: yes
   - name: Disable swap to run k8s tests
@@ -56,7 +58,7 @@
     become: true
   - name: Remove log file
     file:
-      path: /home/kata/kata_ci_job.log
+      path: '{{ guest_kata_log_file }}'
       state: absent
   - name: Kill eventual remaining jenkins_job.sh
     command: killall jenkins_job_build.sh
@@ -64,8 +66,8 @@
   - name: Run Kata CI job
     environment:
       WORKSPACE: "/home/kata"
-      CI_JOB: "CRIO_K8S"
-    shell: ./jenkins_job_build.sh github.com/kata-containers/kata-containers > /home/kata/kata_ci_job.log
+      CI_JOB: "{{ ci_job }}"
+    shell: ./jenkins_job_build.sh github.com/kata-containers/kata-containers > {{ guest_kata_log_file }}
     args:
       chdir: /home/kata/go/src/github.com/kata-containers/tests/.ci
       creates: /home/kata/kata_ci_job.log
@@ -73,15 +75,15 @@
     async: 1000
     poll: 0
     register: ci_register
-  - name: Check CI job every 120 sec
+  - name: Check CI job every {{ poll_time  }} sec
     async_status:
       jid: "{{ ci_register.ansible_job_id }}"
     register: job_result
     until: job_result.finished
-    delay: 120
-    retries: 30
+    delay: '{{ poll_time }}'
+    retries: '{{ num_tries  }}'
     ignore_errors: yes
   - name: Copy log file locally
     fetch:
-      src: /home/kata/kata_ci_job.log
-      dest: kata-ci-job.log
+      src: '{{ guest_kata_log_file }}'
+      dest: '{{ host_kata_log_dir  }}'
