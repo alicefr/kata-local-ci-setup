@@ -1,14 +1,22 @@
 #!/bin/bash 
 
+disk=kata.qcow2
+size=50G
+memory=8192
+cpus=4
+
 function help {
-	echo "Create local CI environment for kata container: virt-build-kata "
+	echo "Create local CI environment for kata container:"
 	echo "	-h: print help"
 	echo "	-d <distro>: (ubuntu,centos,fedora)"
 	echo "	-k <ssh_key_file>"
+	echo "	-o <disk-image>: path and image name (default $disk)"
+	echo "	-s <size>: image size (default $size)"
+	echo "	-m <memory>: memory (default $memory)"
+	echo "	-c <cpus>: memory (default $cpus)"
 }
 
-
-while getopts hk:d: flag
+while getopts hk:d:o:s: flag
 do
     case "${flag}" in
         d) d=${OPTARG};;
@@ -16,8 +24,18 @@ do
         h) help
 	   exit 0
 	 ;;
+	o) disk=${OPTARG};;
+	s) size=${OPTARG};;
+	c) cpus=${OPTARG};;
+	m) memory=${OPTARG};;
     esac
 done
+
+if [ -z $key ]; then
+	echo "Please provide a ssh key file"
+	help
+	exit 1
+fi
 
 distro_commands=""
 rh_distro_commands=( --selinux-relabel
@@ -45,8 +63,8 @@ case "$d" in
 		distro_commands=("${rh_distro_commands[@]}")
 		;;
 	*)
+		echo "Distro $1 not recognized. Please provide a valid distro"
 		help
-		echo "Distro $1 not recognized"
         	exit 1
 esac
 
@@ -54,7 +72,7 @@ SSH_KEY_FILE=$key
 SSH_KEY=$(cat $SSH_KEY_FILE)
 set -ex
 
-virt-builder $distro -o kata.qcow2 --format qcow2 --size=50G \
+virt-builder $distro -o $disk --format qcow2 --size=$size \
 	--root-password password:kata \
 	"${distro_commands[@]}" \
 	--mkdir /home/kata \
@@ -70,6 +88,6 @@ virt-builder $distro -o kata.qcow2 --format qcow2 --size=50G \
 	--password  'kata:password:kata' \
 	--hostname kata-$distro
 
-sudo virt-install --import --name kata  --ram 8192 --vcpus 4 \
-        --disk path=kata.qcow2,format=qcow2 --graphics vnc,listen=0.0.0.0 \
+virt-install --import --name kata  --ram $memory --vcpus $cpus \
+        --disk path=$disk,format=qcow2 --graphics vnc,listen=0.0.0.0 \
         --os-type=$osvariant --network network=default
