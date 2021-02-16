@@ -1,9 +1,11 @@
-#!/bin/bash 
+#!/bin/bash
 
 disk=kata.qcow2
 size=50G
 memory=8192
 cpus=4
+force=false
+network=""
 
 function help {
 	echo "Create local CI environment for kata container:"
@@ -14,9 +16,11 @@ function help {
 	echo "	-s <size>: image size (default $size)"
 	echo "	-m <memory>: memory (default $memory)"
 	echo "	-c <cpus>: memory (default $cpus)"
+	echo "	-f force the disk to be overwritten"
+	echo "  -n network config (optional)"
 }
 
-while getopts hk:d:o:s: flag
+while getopts fhk:d:o:s: flag
 do
     case "${flag}" in
         d) d=${OPTARG};;
@@ -28,6 +32,8 @@ do
 	s) size=${OPTARG};;
 	c) cpus=${OPTARG};;
 	m) memory=${OPTARG};;
+	f) force=true ;;
+	n) network=${OPTARG};;
     esac
 done
 
@@ -35,6 +41,11 @@ if [ -z $key ]; then
 	echo "Please provide a ssh key file"
 	help
 	exit 1
+fi
+
+if [ -f $disk ] && ![ $force  ] ; then
+	echo "Disk $disk alreay exists"
+	exit 0
 fi
 
 distro_commands=""
@@ -88,6 +99,6 @@ virt-builder $distro -o $disk --format qcow2 --size=$size \
 	--password  'kata:password:kata' \
 	--hostname kata-$distro
 
-virt-install --import --name kata  --ram $memory --vcpus $cpus \
-        --disk path=$disk,format=qcow2 --graphics vnc,listen=0.0.0.0 \
-        --os-type=$osvariant --network network=default
+virt-install --import --name kata-$d  --memory $memory --vcpus $cpus \
+        --disk path=$disk,format=qcow2 \
+        --os-variant=$osvariant --network $network --noautoconsole
