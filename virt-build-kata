@@ -49,16 +49,19 @@ if [ -z $disk ]; then
 	exit 1
 fi
 
-if [ -f $disk ] && ![ $force  ] ; then
+if [ -f $disk ] && ! [ $force  ] ; then
 	echo "Disk $disk alreay exists"
 	exit 0
 fi
 
 distro_commands=""
+final_firstboot_cmd=""
 rh_distro_commands=( --selinux-relabel
 		--edit '/etc/selinux/config:s/SELINUX=enforcing/SELINUX=permissive/'
 		--firstboot-command 'systemctl stop firewalld'
 		--firstboot-command 'systemctl disable firewalld')
+disable_cgroupv2=( --firstboot-command 'grubby --update-kernel=ALL --args="systemd.unified_cgroup_hierarchy=0"' 
+		--firstboot-command 'reboot')
 case "$d" in
 	ubuntu)
 		distro=ubuntu-18.04
@@ -78,6 +81,7 @@ case "$d" in
 		distro=fedora-32
 		osvariant=fedora32
 		distro_commands=("${rh_distro_commands[@]}")
+		final_firstboot_cmd=("${disable_cgroupv2[@]}")
 		;;
 	*)
 		echo "Distro $1 not recognized. Please provide a valid distro"
@@ -101,7 +105,7 @@ virt-builder $distro -o $disk --format qcow2 --size=$size \
 	--firstboot-command "echo 'export PATH=\$PATH:/usr/local/go/bin' >> /home/kata/.bashrc" \
 	--firstboot-command 'mkdir -p /home/kata/.ssh' \
 	--firstboot-command "echo $SSH_KEY > /home/kata/.ssh/authorized_keys"  \
-	--firstboot-command 'chown kata:kata -R /home/kata' \
+	--firstboot-command 'chown kata:kata -R /home/kata' "${final_firstboot_cmd[@]}" \
 	--password  'kata:password:kata' \
 	--hostname kata-$distro
 opts=""
