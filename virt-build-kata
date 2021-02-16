@@ -12,7 +12,7 @@ function help {
 	echo "	-h: print help"
 	echo "	-d <distro>: (ubuntu,centos,fedora)"
 	echo "	-k <ssh_key_file>"
-	echo "	-o <disk-image>: path and image name (default $disk)"
+	echo "	-o <disk-image>: path and image name"
 	echo "	-s <size>: image size (default $size)"
 	echo "	-m <memory>: memory (default $memory)"
 	echo "	-c <cpus>: memory (default $cpus)"
@@ -39,6 +39,12 @@ done
 
 if [ -z $key ]; then
 	echo "Please provide a ssh key file"
+	help
+	exit 1
+fi
+
+if [ -z $disk ]; then
+	echo "Please provide the image name"
 	help
 	exit 1
 fi
