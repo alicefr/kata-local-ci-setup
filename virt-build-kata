@@ -20,7 +20,7 @@ function help {
 	echo "  -n network config (optional)"
 }
 
-while getopts fhk:d:o:s: flag
+while getopts fhk:d:o:s:n: flag
 do
     case "${flag}" in
         d) d=${OPTARG};;
@@ -104,7 +104,11 @@ virt-builder $distro -o $disk --format qcow2 --size=$size \
 	--firstboot-command 'chown kata:kata -R /home/kata' \
 	--password  'kata:password:kata' \
 	--hostname kata-$distro
+opts=""
+if [  ! -z "$network" ]; then
+	opts="--network $network"
+fi
 
 virt-install --import --name kata-$d  --memory $memory --vcpus $cpus \
         --disk path=$disk,format=qcow2 \
-        --os-variant=$osvariant --network $network --noautoconsole
+        --os-variant=$osvariant --noautoconsole $opts
