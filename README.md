@@ -3,9 +3,9 @@ This setup is based on the Jenkins scripts for the Kata CI, and it locally repro
 
 Create a VM with:
 ```bash
-$ ./virt-build-kata -d <distro> -k <path-to-your-public-ssh-key>
+$ ./virt-build-kata -d <distro> -k <path-to-your-public-ssh-key> -o <image>
 ```
-Create a hosts.yaml file with the IP of your VM like this:
+Create a hosts.yaml file with the IP or name (if you have dns resolution) of your VM like this:
 ```yaml
 all:
   hosts:
