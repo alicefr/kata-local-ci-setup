@@ -60,15 +60,15 @@ rh_distro_commands=( --selinux-relabel
 		--edit '/etc/selinux/config:s/SELINUX=enforcing/SELINUX=permissive/'
 		--firstboot-command 'systemctl stop firewalld'
 		--firstboot-command 'systemctl disable firewalld')
-disable_cgroupv2=( --firstboot-command 'grubby --update-kernel=ALL --args="systemd.unified_cgroup_hierarchy=0"' 
+disable_cgroupv2=( --firstboot-command 'grubby --update-kernel=ALL --args="systemd.unified_cgroup_hierarchy=0"'
 		--firstboot-command 'reboot')
 case "$d" in
 	ubuntu)
 		distro=ubuntu-18.04
 		distro_commands=( --firstboot-command 'usermod -a -G sudo kata'
-		--update 
-		--firstboot-command 'dhclient' 
-		--firstboot-command 'systemctl enable serial-getty@ttyS0' 
+		--update
+		--firstboot-command 'dhclient'
+		--firstboot-command 'systemctl enable serial-getty@ttyS0'
 		--firstboot-command 'systemctl start serial-getty@ttyS0')
 		osvariant=ubuntu18.04
 		;;
@@ -105,7 +105,7 @@ virt-builder $distro -o $disk --format qcow2 --size=$size \
 	--firstboot-command "echo 'export PATH=\$PATH:/usr/local/go/bin' >> /home/kata/.bashrc" \
 	--firstboot-command 'mkdir -p /home/kata/.ssh' \
 	--firstboot-command "echo $SSH_KEY > /home/kata/.ssh/authorized_keys"  \
-	--firstboot-command 'chown kata:kata -R /home/kata' "${final_firstboot_cmd[@]}" \
+	--firstboot-command 'chown kata:kata -R /home/kata "${final_firstboot_cmd[@]}"' \
 	--password  'kata:password:kata' \
 	--hostname kata-$distro
 opts=""
