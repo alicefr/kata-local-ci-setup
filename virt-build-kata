@@ -55,7 +55,7 @@ if [ -f $disk ] && ! [ $force  ] ; then
 fi
 
 distro_commands=""
-final_firstboot_cmd=""
+final_firstboot_cmd=()
 rh_distro_commands=( --selinux-relabel
 		--edit '/etc/selinux/config:s/SELINUX=enforcing/SELINUX=permissive/'
 		--firstboot-command 'systemctl stop firewalld'
@@ -105,7 +105,8 @@ virt-builder $distro -o $disk --format qcow2 --size=$size \
 	--firstboot-command "echo 'export PATH=\$PATH:/usr/local/go/bin' >> /home/kata/.bashrc" \
 	--firstboot-command 'mkdir -p /home/kata/.ssh' \
 	--firstboot-command "echo $SSH_KEY > /home/kata/.ssh/authorized_keys"  \
-	--firstboot-command 'chown kata:kata -R /home/kata "${final_firstboot_cmd[@]}"' \
+	--firstboot-command 'chown kata:kata -R /home/kata' \
+        "${final_firstboot_cmd[@]}" \
 	--password  'kata:password:kata' \
 	--hostname kata-$distro
 opts=""
