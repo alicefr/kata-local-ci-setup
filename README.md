@@ -19,7 +19,7 @@ Prepare and run the Kata CI tests:
 ```bash
 $ ansible-playbook  -i hosts.yaml run-local-kata-ci.yaml
 ```
-When the the ansible-playbook finished (with errors or not),and it will copy the output in the directory `kata-ci-job.log`.
+When the the ansible-playbook finishes (with errors or not), it will copy the output in the directory `kata-ci-job.log`.
 
 If you want to check the log of the script while it is running:
 ```bash
